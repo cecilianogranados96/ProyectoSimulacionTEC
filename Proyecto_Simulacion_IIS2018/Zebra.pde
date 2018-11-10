@@ -6,84 +6,92 @@ class Zebra implements IIndividuo {
   float r = 3;
   float maxSpeed;
   float maxForce;
-  boolean alive, alert;
-  
+  boolean alive, alert, hungry;
+
   float alignmentDistance;
   float alignmentRatio;
-  
+
   float separationDistance;
   float separationRatio;
-  
+
   float cohesionDistance;
   float cohesionRatio;
-  
+
   float arrivalRadius;
-  
+
   float perceptionRadius;
   float reproductionRate;
-  
+
   color c;
   boolean debug;
   
+  PImage img;
+
   Zebra(float x, float y, PVector vel, float maxSpeed, float maxForce) {
     pos = new PVector(x, y);
     this.vel = vel;
     acc = new PVector(0, 0);
-    
+
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
-    
-    separationDistance = 20;
-    separationRatio = 1;
-    
-    alignmentDistance = 70;
-    alignmentRatio = 1;
-    
-    cohesionDistance = 70;
-    cohesionRatio = 1;
-    
+
+    separationDistance = 50;
+    separationRatio = 25;
+
+    alignmentDistance = 110;
+    alignmentRatio = 0.5;
+
+    cohesionDistance = 150;
+    cohesionRatio = 0.1;
+
     arrivalRadius = 200;
-    
-    perceptionRadius = 200;
+
+    perceptionRadius = 75;
     reproductionRate = 500;
+
+    c = color(255);   
     
-    c = color(255);
+    img = loadImage("zebra.png");
+    img.resize(10, 15);
   }
-  
-  //void update() {
-  //  if (alert) {
-  //    //aumenta velocidad xq la vio un leon
-  //  }
-  //  if (hungry) {
-  //    //busca comida
-  //    seek();
-  //  }
-  //}
 
   boolean isDead() {
     return !alive;
   }
-  
+
   void update() {
     vel.add(acc);
     vel.limit(maxSpeed);
     pos.add(vel);
     acc.mult(0);
   }
-  
+
   void applyForce(PVector force) {
-    PVector f = PVector.div(force, mass);
-    acc.add(f);
+    //PVector f = PVector.div(force, mass); xq mass es 1
+    acc.add(force);
   }
-  
-  //void seek(PVector target) {
-  //  PVector desired = PVector.sub(target, pos);
-  //  desired.setMag(maxSpeed);
-  //  PVector steering = PVector.sub(desired, vel);
-  //  steering.limit(maxForce);
-  //  applyForce(steering);
-  //}
-  
+
+  void foodNearby(ArrayList<Food> foods) {
+    float distance;
+    for (Food f : foods) {
+      distance=PVector.dist(f.pos, pos);
+      if (distance<=perceptionRadius && hungry) {
+        arrive(f.pos);
+      }
+    }
+  }
+
+  void arrive(PVector target) {
+    PVector desired = PVector.sub(target, pos);
+    float d = PVector.dist(pos, target);
+    d = constrain(d, 0, arrivalRadius);
+    float speed = map(d, 0, arrivalRadius, 0, maxSpeed);
+    vel.setMag(speed);
+    PVector steering = PVector.sub(desired, vel);
+    steering.limit(maxForce);
+    applyForce(steering);
+  }
+
   void display() {
     float ang = vel.heading();
     noStroke();    
@@ -91,35 +99,29 @@ class Zebra implements IIndividuo {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(ang);
-    beginShape();
-    vertex(r * 3, 0);
-    vertex(0, -r);
-    vertex(0, r);
-    endShape(CLOSE);
-    
+    image(img, 0, 0, 10, 15);
+
     if (debug) {
       noFill();
-      //strokeWeight(1);
-      //stroke(255, 0, 0, 100);
-      //ellipse(0, 0, cohesionDistance * 2, cohesionDistance * 2);
-      //stroke(0, 255, 0, 100);
-      //ellipse(0, 0, alignmentDistance * 2, alignmentDistance * 2);
-      //stroke(128, 128, 255, 100);
-      //ellipse(0, 0, separationDistance * 2, separationDistance * 2);
       stroke(128, 128, 255, 100);
-      ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);      
+      ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
     }
-    
+
     popMatrix();
   }
-  
+
   void borders() {
-    if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
-    if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
-    if(pos.y > height - 50) applyForce(new PVector(0, -1));
-    if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
-  }
-  
+   if (pos.x > width - 50)  applyForce(new PVector(-1, 0));
+   if (pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
+   if (pos.y > height - 50) applyForce(new PVector(0, -1));
+   if (pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
+   }
+
+  /*void borders() {
+    pos.x = (pos.x + width) % width;
+    pos.y = (pos.y + height) % height;
+  }*/
+
   void align(ArrayList<Zebra> zebras) {
     PVector average = new PVector(0, 0);
     int count = 0;
@@ -132,12 +134,12 @@ class Zebra implements IIndividuo {
     }
     if (count > 0) {
       average.div(count);
-      average.setMag(alignmentRatio);
-      average.limit(maxForce);
+      average.mult(alignmentRatio);
+      average.limit(maxSpeed);
       applyForce(average);
     }
   }
-  
+
   void separate(ArrayList<Zebra> zebras) {
     PVector average = new PVector(0, 0);
     int count = 0;
@@ -153,12 +155,12 @@ class Zebra implements IIndividuo {
     }
     if (count > 0) {
       average.div(count);
-      average.setMag(separationRatio);
-      average.limit(maxForce);
+      average.mult(separationRatio);
+      average.limit(maxSpeed);
       applyForce(average);
     }
   }
-  
+
   void cohere(ArrayList<Zebra> zebras) {
     PVector center = new PVector(0, 0);
     int count = 0;
@@ -172,52 +174,64 @@ class Zebra implements IIndividuo {
     if (count > 0) {
       center.div(count);
       PVector force = center.sub(pos);
-      force.setMag(cohesionRatio);
-      force.limit(maxForce);
+      force.mult(cohesionRatio);
+      force.limit(maxSpeed);
       applyForce(force);
     }
   }
-  
-  void arrive(PVector target) {
-    PVector desired = PVector.sub(target, pos);
-    float d = PVector.dist(pos, target);
-    d = constrain(d, 0, arrivalRadius);
-    float speed = map(d, 0, arrivalRadius, 0, maxSpeed);
-    vel.setMag(speed);
-    PVector steering = PVector.sub(desired, vel);
-    steering.limit(maxForce);
-    applyForce(steering);
-  }
-  
+
   void flock(ArrayList<Zebra> zebras) {
     separate(zebras);
     align(zebras);
     cohere(zebras);
   }
-  
-  boolean alert(ArrayList<Lion> lions) {
-    for (Lion l : lions) {
-      float lionPosX = l.pos.x;
-      float lionPosY = l.pos.y;
-      float leftSide = pos.x - perceptionRadius;
-      float rightSide = pos.x + perceptionRadius; 
-      float topSide = pos.y - perceptionRadius;
-      float bottomSide = pos.y + perceptionRadius;
 
-      if (leftSide <= lionPosX && lionPosX <= rightSide && topSide <= lionPosY && lionPosY <= bottomSide) {  
-        return true;
+  ArrayList<Lion> alert(ArrayList<Lion> lions) {
+    float distance;
+    ArrayList<Lion> danger= new ArrayList();
+    for (Lion l : lions) {
+      distance=PVector.dist(l.pos, pos);
+      if (distance<=perceptionRadius) {
+        scape(l);
+        danger.add(l);
       }
     }
-    return false;
+    return danger;
   }
-  
+
+  void scape(Lion l) {
+    PVector r = PVector.sub(pos, l.pos);
+    float d = r.magSq();
+    d = constrain(d, 1, 500);
+    r.normalize();
+    r.mult(100);//r.mult(G * a1.mass * a2.mass);
+    r.div(d);
+    applyForce(r);
+  }
+
+  /*boolean alert(ArrayList<Lion> lions) {
+   for (Lion l : lions) {
+   float lionPosX = l.pos.x;
+   float lionPosY = l.pos.y;
+   float leftSide = pos.x - perceptionRadius;
+   float rightSide = pos.x + perceptionRadius; 
+   float topSide = pos.y - perceptionRadius;
+   float bottomSide = pos.y + perceptionRadius;
+   
+   if (leftSide <= lionPosX && lionPosX <= rightSide && topSide <= lionPosY && lionPosY <= bottomSide) {  
+   return true;
+   }
+   }
+   return false;
+   }*/
+
   ArrayList<Zebra> reproduce(ArrayList<Zebra> zebrasToBeAdded) {     
     if (frameCount % reproductionRate == 0) {
-      zebrasToBeAdded.add(new Zebra(pos.x+15, pos.y+15, PVector.random2D(), 0.15, 0.05));
+      zebrasToBeAdded.add(new Zebra(pos.x+15, pos.y+15, PVector.random2D(), 0.7, 0.1));
     }
     return zebrasToBeAdded;
   }
-  
+
   PVector getPos() {
     return pos;
   }
