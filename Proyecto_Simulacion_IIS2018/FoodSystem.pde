@@ -14,8 +14,8 @@ class FoodSystem {
     }
   }
 
-  void addFood(float originX, float originY) {
-    Food f = new Food(originX, originY);
+  void addFood(float originX, float originY, String type) {
+    Food f = new Food(originX, originY, type);
     foods.add(f);
   }
 }

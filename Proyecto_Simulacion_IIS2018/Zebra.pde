@@ -22,7 +22,6 @@ class Zebra implements IIndividuo {
   float perceptionRadius;
   float reproductionRate;
 
-  color c;
   boolean debug;
   
   PImage img;
@@ -48,11 +47,9 @@ class Zebra implements IIndividuo {
 
     perceptionRadius = 75;
     reproductionRate = 500;
-
-    c = color(255);   
     
     img = loadImage("zebra.png");
-    img.resize(10, 15);
+    img.resize(20, 25);
   }
 
   boolean isDead() {
@@ -94,16 +91,15 @@ class Zebra implements IIndividuo {
 
   void display() {
     float ang = vel.heading();
-    noStroke();    
-    fill(c);
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(ang);
-    image(img, 0, 0, 10, 15);
+    image(img, 0, 0, img.width, img.height);
 
     if (debug) {
       noFill();
-      stroke(128, 128, 255, 100);
+      strokeWeight(1);
+      stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
     }
 

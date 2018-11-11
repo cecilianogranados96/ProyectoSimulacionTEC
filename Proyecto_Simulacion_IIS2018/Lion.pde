@@ -20,8 +20,7 @@ class Lion implements IIndividuo {
   float arrivalRadius;
   float perceptionRadius;
   float hungerLevel;
-
-  color c;
+  
   boolean debug;
   
   PImage img;
@@ -45,11 +44,10 @@ class Lion implements IIndividuo {
 
     arrivalRadius = 100;
     perceptionRadius = 100;
-    hungerLevel = 300;
-    c = color(#C0C40C);
+    hungerLevel = 300;    
     
     img = loadImage("lion.png");
-    img.resize(15, 20);
+    img.resize(25, 30);
   }
 
   void update() {
@@ -69,18 +67,16 @@ class Lion implements IIndividuo {
   }
 
   void display() {
-    float ang = vel.heading();
-    noStroke();    
-    fill(c);
+    float ang = vel.heading();    
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(ang);
-    image(img, 0, 0, 15, 20);
+    image(img, 0, 0, img.width, img.height);
 
     if (debug) {
       noFill();
       strokeWeight(1);  
-      stroke(#F51616);
+      stroke(#F51616, 200);
       ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
     }
 
