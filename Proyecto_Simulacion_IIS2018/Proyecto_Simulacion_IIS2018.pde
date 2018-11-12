@@ -31,7 +31,7 @@ void setup() {
   system = new FoodSystem();  
   initControls();
 
-  hungryZebra = 5*100;//int(random(0, 50))*100;
+  hungryZebra = int(random(0, 50))*100;
   hungryLion  = int(random(0, 80))*100;
 
   wait = 1000;
@@ -78,7 +78,7 @@ void draw() {
   for (Food f : system.foods) {
     if (!f.isEmpty()){
       f.draw();
-    }   
+    }
   }
 
   showHungerTimes();

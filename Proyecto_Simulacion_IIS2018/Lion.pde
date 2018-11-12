@@ -43,7 +43,7 @@ class Lion implements IIndividuo {
     cohesionRatio = 0.01;
 
     arrivalRadius = 100;
-    perceptionRadius = 100;
+    perceptionRadius = 75;
     hungerLevel = 300;    
     
     img = loadImage("lion.png");
@@ -158,7 +158,7 @@ class Lion implements IIndividuo {
     steering.limit(maxForce);
     applyForce(steering);
     
-    if(int(d) == 0){
+    if(abs(int(d)) == 10){
       eat(zebra);
     }
   }

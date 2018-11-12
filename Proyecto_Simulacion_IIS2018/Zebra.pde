@@ -105,6 +105,9 @@ class Zebra implements IIndividuo {
     translate(pos.x, pos.y);
     rotate(ang);
     image(img, 0, 0, img.width, img.height);
+    
+    textSize(35);
+    text(quantity, pos.x, pos.y);
 
     if (debug) {
       noFill();
@@ -112,9 +115,6 @@ class Zebra implements IIndividuo {
       stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
     }
-    
-    textSize(35);
-    text(quantity, pos.x, pos.y);
 
     popMatrix();
   }
@@ -125,11 +125,6 @@ class Zebra implements IIndividuo {
    if (pos.y > height - 50) applyForce(new PVector(0, -1));
    if (pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
    }
-
-  /*void borders() {
-    pos.x = (pos.x + width) % width;
-    pos.y = (pos.y + height) % height;
-  }*/
 
   void align(ArrayList<Zebra> zebras) {
     PVector average = new PVector(0, 0);
