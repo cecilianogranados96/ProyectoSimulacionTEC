@@ -6,7 +6,7 @@ class Zebra implements IIndividuo {
   float r = 3;
   float maxSpeed;
   float maxForce;
-  boolean alive, alert, hungry;
+  boolean alert, hungry;
 
   float alignmentDistance;
   float alignmentRatio;
@@ -25,6 +25,9 @@ class Zebra implements IIndividuo {
   boolean debug;
   
   PImage img;
+  
+  int quantity;
+  boolean dead;
 
   Zebra(float x, float y, PVector vel, float maxSpeed, float maxForce) {
     pos = new PVector(x, y);
@@ -50,10 +53,13 @@ class Zebra implements IIndividuo {
     
     img = loadImage("zebra.png");
     img.resize(20, 25);
+    
+    dead = false;
+    quantity = 50;
   }
 
   boolean isDead() {
-    return !alive;
+    return dead;
   }
 
   void update() {
@@ -67,18 +73,18 @@ class Zebra implements IIndividuo {
     //PVector f = PVector.div(force, mass); xq mass es 1
     acc.add(force);
   }
-
-  void foodNearby(ArrayList<Food> foods) {
+  
+  void starving(ArrayList<Food> foods) {
     float distance;
     for (Food f : foods) {
-      distance=PVector.dist(f.pos, pos);
-      if (distance<=perceptionRadius && hungry) {
-        arrive(f.pos);
+      distance = PVector.dist(f.getPos(), pos);
+      if (distance <= perceptionRadius && !f.isEmpty()) {
+        arrive(f.getPos(), f);
       }
     }
   }
 
-  void arrive(PVector target) {
+  void arrive(PVector target, Food food) {
     PVector desired = PVector.sub(target, pos);
     float d = PVector.dist(pos, target);
     d = constrain(d, 0, arrivalRadius);
@@ -87,6 +93,10 @@ class Zebra implements IIndividuo {
     PVector steering = PVector.sub(desired, vel);
     steering.limit(maxForce);
     applyForce(steering);
+    
+    if(int(d) == 0){
+      eat(food);
+    }
   }
 
   void display() {
@@ -102,6 +112,9 @@ class Zebra implements IIndividuo {
       stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
     }
+    
+    textSize(35);
+    text(quantity, pos.x, pos.y);
 
     popMatrix();
   }
@@ -230,5 +243,17 @@ class Zebra implements IIndividuo {
 
   PVector getPos() {
     return pos;
+  }
+  
+  void eat(Food food) {
+    food.eating();
+  }
+  
+  void eating(){
+    quantity--;
+    
+    if(quantity == 0){
+      dead = true;
+    }
   }
 }

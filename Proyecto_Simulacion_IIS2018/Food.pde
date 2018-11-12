@@ -1,14 +1,16 @@
 class Food{
   PVector pos;  
   int mass, life;
-  boolean dead;
+  boolean empty;
   PImage img;
+  int quantity;
   
   Food(float x, float y, String type) {
     pos  = new PVector(x, y);
     mass = 2;    
-    dead = false;
+    empty = false;
     setImage(type);
+    quantity = int(random(0, 50));
   }
 
   // Displays the food on the screen.
@@ -17,6 +19,8 @@ class Food{
     translate(pos.x, pos.y);
     image(img, 0, 0, img.width, img.height);
     popMatrix();
+    textSize(35);
+    text(quantity, pos.x, pos.y);
   }
   
   // Gets the position of the food.
@@ -25,8 +29,8 @@ class Food{
   }
   
   // Checks if the food is already eaten.
-  boolean isDead() {
-    return dead;
+  boolean isEmpty() {
+    return empty;
   }
   
   // Loads an image based on its type (food or water).
@@ -38,6 +42,14 @@ class Food{
     else{
       img = loadImage("water.png"); 
       img.resize(60, 60);
+    }
+  }
+  
+  void eating(){
+    quantity--;
+    
+    if(quantity == 0){
+      empty = true;
     }
   }
 }

@@ -31,7 +31,7 @@ void setup() {
   system = new FoodSystem();  
   initControls();
 
-  hungryZebra = int(random(0, 50))*100;
+  hungryZebra = 5*100;//int(random(0, 50))*100;
   hungryLion  = int(random(0, 80))*100;
 
   wait = 1000;
@@ -51,17 +51,15 @@ void draw() {
   ArrayList<Lion> danger=new ArrayList();
 
   for (Zebra z : zebras) {
-    z.flock(zebras);
-    z.update();
-    z.borders();
-    z.display();
-    danger=z.alert(lions);
-
-    for (Food f : system.foods) {
-      f.draw();
-
+    if(!z.isDead()){
+      z.flock(zebras);
+      z.update();
+      z.borders();
+      z.display();
+      danger=z.alert(lions);
+      
       if (hungryZebra == 0) {
-        z.foodNearby(system.foods);
+        z.starving(system.foods);
       }
     }
   }
@@ -73,10 +71,14 @@ void draw() {
     l.display();
 
     if (hungryLion == 0) {
-      for (Zebra z : zebras) {      
-        //l.arrive(z.getPos());
-      }
+      l.starving(zebras);
     }
+  }
+  
+  for (Food f : system.foods) {
+    if (!f.isEmpty()){
+      f.draw();
+    }   
   }
 
   showHungerTimes();
@@ -95,7 +97,7 @@ void draw() {
   int counterL = 0;
   for (Iterator<Lion> it = lions.iterator(); it.hasNext(); ) {
     Lion l = it.next();
-    if (l.starving(zebras) && counterL != 1 && frameCount % l.hungerLevel == 0) {  
+    if (counterL != 1 && frameCount % l.hungerLevel == 0) {  
       it.remove();
       counterL++;
     }

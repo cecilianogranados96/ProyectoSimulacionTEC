@@ -84,16 +84,11 @@ class Lion implements IIndividuo {
   }
 
   void borders() {
-   if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
-   if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
-   if(pos.y > height - 50) applyForce(new PVector(0, -1));
-   if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
-   }
-
-  /*void borders() {
-    pos.x = (pos.x + width) % width;
-    pos.y = (pos.y + height) % height;
-  }*/
+    if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
+    if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
+    if(pos.y > height - 50) applyForce(new PVector(0, -1));
+    if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
+  }
 
   void align(ArrayList<Lion> lions) {
     PVector average = new PVector(0, 0);
@@ -153,7 +148,7 @@ class Lion implements IIndividuo {
     }
   }
 
-  void arrive(PVector target) {
+  void arrive(PVector target, Zebra zebra) {
     PVector desired = PVector.sub(target, pos);
     float d = PVector.dist(pos, target);
     d = constrain(d, 0, arrivalRadius);
@@ -162,6 +157,14 @@ class Lion implements IIndividuo {
     PVector steering = PVector.sub(desired, vel);
     steering.limit(maxForce);
     applyForce(steering);
+    
+    if(int(d) == 0){
+      eat(zebra);
+    }
+  }
+  
+  void eat(Zebra zebra) {
+    zebra.eating();
   }
 
   void flock(ArrayList<Lion> lions) {
@@ -170,30 +173,14 @@ class Lion implements IIndividuo {
     cohere(lions);*/
   }
 
-  boolean starving(ArrayList<Zebra> zebras) {
+  void starving(ArrayList<Zebra> zebras) {
     float distance;
     for (Zebra z : zebras) {
       distance=PVector.dist(z.pos, pos);
-      if (distance<=perceptionRadius && hungry) {//y si está hambriento entonces que llame a función arrive
-        arrive(z.pos);
-        return true;
+      if (distance <= perceptionRadius && !z.isDead()) {//y si está hambriento entonces que llame a función arrive
+        arrive(z.getPos(), z);
       }
     }
-    return false;
-    /*
-    for (Zebra z : zebras) {
-     float zebraPosX = z.pos.x;
-     float zebraPosY = z.pos.y;
-     float leftSide = pos.x - perceptionRadius;
-     float rightSide = pos.x + perceptionRadius; 
-     float topSide = pos.y - perceptionRadius;
-     float bottomSide = pos.y + perceptionRadius;
-     
-     if (leftSide <= zebraPosX && zebraPosX <= rightSide && topSide <= zebraPosY && zebraPosY <= bottomSide) {  
-     return false;
-     }
-     }
-     return true;*/
   }
 
   void eliminate() {
