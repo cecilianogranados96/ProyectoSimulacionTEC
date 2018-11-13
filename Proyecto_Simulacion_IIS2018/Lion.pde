@@ -6,7 +6,7 @@ class Lion implements IIndividuo {
   float r = 3;
   float maxSpeed;
   float maxForce;
-  boolean alive, hungry;
+  boolean dead, hungry;
 
   float alignmentDistance;
   float alignmentRatio;
@@ -43,11 +43,13 @@ class Lion implements IIndividuo {
     cohesionRatio = 0.01;
 
     arrivalRadius = 100;
-    perceptionRadius = 75;
+    perceptionRadius = 150;
     hungerLevel = 300;    
     
     img = loadImage("lion.png");
     img.resize(25, 30);
+    
+    dead = false;
   }
 
   void update() {
@@ -58,7 +60,7 @@ class Lion implements IIndividuo {
   }
 
   boolean isDead() {
-    return !alive;
+    return dead;
   }
 
   void applyForce(PVector force) {
@@ -71,13 +73,15 @@ class Lion implements IIndividuo {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(ang);
+    imageMode(CENTER);
     image(img, 0, 0, img.width, img.height);
+    imageMode(CORNER);
 
     if (debug) {
       noFill();
       strokeWeight(1);  
       stroke(#F51616, 200);
-      ellipse(0, 0, perceptionRadius * 2, perceptionRadius * 2);
+      ellipse(0, 0, perceptionRadius, perceptionRadius);
     }
 
     popMatrix();
@@ -168,19 +172,35 @@ class Lion implements IIndividuo {
   }
 
   void flock(ArrayList<Lion> lions) {
-    /*separate(lions);
+    separate(lions);
     align(lions);
-    cohere(lions);*/
+    cohere(lions);
   }
 
   void starving(ArrayList<Zebra> zebras) {
     float distance;
     for (Zebra z : zebras) {
-      distance=PVector.dist(z.pos, pos);
-      if (distance <= perceptionRadius && !z.isDead()) {//y si está hambriento entonces que llame a función arrive
+      distance = PVector.dist(z.pos, pos);
+      if (distance <= perceptionRadius && !z.isDead()) {
         arrive(z.getPos(), z);
       }
     }
+  }
+  
+  boolean target(ArrayList<Zebra> zebras) {
+    float distance;
+    
+    for (Zebra z : zebras) {
+      distance = PVector.dist(z.pos, pos);
+      if (distance <= perceptionRadius && !z.isDead()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  PVector getPos(){
+    return pos;
   }
 
   void eliminate() {

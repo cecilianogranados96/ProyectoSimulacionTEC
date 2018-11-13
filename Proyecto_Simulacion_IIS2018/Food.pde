@@ -17,7 +17,9 @@ class Food{
   void draw() {       
     pushMatrix();
     translate(pos.x, pos.y);
+    imageMode(CENTER);
     image(img, 0, 0, img.width, img.height);
+    imageMode(CORNER);
     popMatrix();
     textSize(35);
     text(quantity, pos.x, pos.y);
@@ -48,7 +50,7 @@ class Food{
   void eating(){
     quantity--;
     
-    if(quantity == 0){
+    if(quantity <= 0){
       empty = true;
     }
   }

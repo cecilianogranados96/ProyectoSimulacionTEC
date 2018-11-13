@@ -9,6 +9,7 @@ ControlP5 cp5setLionsMortalityRate;
 // Arrays for storing both types of species.
 ArrayList<Zebra> zebras;
 ArrayList<Lion> lions;
+ArrayList<Dead> dead;
 
 FoodSystem system;
 
@@ -28,11 +29,13 @@ void setup() {
   fullScreen(P2D);
   zebras = new ArrayList();
   lions = new ArrayList();
-  system = new FoodSystem();  
+  dead = new ArrayList();
+  system = new FoodSystem();
+  
   initControls();
 
-  hungryZebra = int(random(0, 50))*100;
-  hungryLion  = int(random(0, 80))*100;
+  hungryZebra = 5*100;//int(random(0, 50))*100;
+  hungryLion  = 5*100;//int(random(0, 80))*100;
 
   wait = 1000;
   
@@ -48,19 +51,24 @@ void draw() {
   image(terrain, 0, 0, width, height);  
   terrain.resize(width, height);
   
+  for (Dead d : dead) {
+    d.draw();
+  }
+  
+  for (Food f : system.foods) {
+    if (!f.isEmpty()){
+      f.draw();
+    }
+  }
+  
   ArrayList<Lion> danger=new ArrayList();
 
   for (Zebra z : zebras) {
-    if(!z.isDead()){
-      z.flock(zebras);
-      z.update();
-      z.borders();
-      z.display();
-      danger=z.alert(lions);
-      
-      if (hungryZebra == 0) {
-        z.starving(system.foods);
-      }
+    z.draw(zebras);
+    danger = z.alert(lions);
+    
+    if (hungryZebra == 0) {
+      z.starving(system.foods);
     }
   }
 
@@ -74,12 +82,6 @@ void draw() {
       l.starving(zebras);
     }
   }
-  
-  for (Food f : system.foods) {
-    if (!f.isEmpty()){
-      f.draw();
-    }
-  }
 
   showHungerTimes();
 
@@ -87,7 +89,7 @@ void draw() {
   int counterZ = 0;
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
-    if (danger.isEmpty() && counterZ != 1 && zebras.size() > 1) {
+    if (danger.isEmpty() && counterZ != 1 && zebras.size() > 1 && z.target(system.foods)) {
       zebrasToBeAdded = z.reproduce(zebrasToBeAdded); 
       counterZ++;
     }
@@ -97,14 +99,30 @@ void draw() {
   int counterL = 0;
   for (Iterator<Lion> it = lions.iterator(); it.hasNext(); ) {
     Lion l = it.next();
-    if (counterL != 1 && frameCount % l.hungerLevel == 0) {  
+    if (!l.target(zebras) && counterL != 1 && frameCount % l.hungerLevel == 0) {
+      Dead d = new Dead(l.getPos().x, l.getPos().y);
+      dead.add(d);
       it.remove();
       counterL++;
     }
-  }  
-  
-  
+  }
   addItems();
+  
+  for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
+    Zebra z = it.next();
+    if (z.isDead()) {
+      Dead d = new Dead(z.getPos().x, z.getPos().y);
+      dead.add(d);
+      it.remove();
+    }
+  }
+  
+  for (Iterator<Food> it = system.foods.iterator(); it.hasNext(); ) {
+    Food f = it.next();
+    if (f.isEmpty()) {
+      it.remove();
+    }
+  }
 }
 
 // Shows the different hunger times of both species.
