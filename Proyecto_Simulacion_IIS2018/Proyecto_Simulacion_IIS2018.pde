@@ -31,18 +31,18 @@ void setup() {
   lions = new ArrayList();
   dead = new ArrayList();
   system = new FoodSystem();
-  
+
   initControls();
 
   hungryZebra = 5*100;//int(random(0, 50))*100;
   hungryLion  = 5*100;//int(random(0, 80))*100;
 
   wait = 1000;
-  
+
   terrain = loadImage("terrain.png");
   cursor1 = loadImage("hand.png");
   cursor2 = loadImage("hand2.png");
-  
+
   cursor(cursor1);
 }
 
@@ -50,73 +50,73 @@ void draw() {
   imageMode(CORNER);
   image(terrain, 0, 0, width, height);  
   terrain.resize(width, height);
-  
+
   for (Dead d : dead) {
     d.draw();
   }
-  
+
   for (Food f : system.foods) {
-    if (!f.isEmpty()){
+    if (!f.isEmpty()) {
       f.draw();
     }
   }
-  
-  ArrayList<Lion> danger=new ArrayList();
 
   for (Zebra z : zebras) {
     z.draw(zebras);
-    danger = z.alert(lions);
-    
-    if (hungryZebra == 0) {
+    boolean isAlert=z.alert(lions);
+    if (hungryZebra == 0 && !(system.foods.isEmpty()) && !isAlert) {
       z.starving(system.foods);
     }
   }
-
+  
   for (Lion l : lions) {
     l.flock(lions);
     l.update();
     l.borders();
     l.display();
 
-    if (hungryLion == 0) {
+    if (hungryLion == 0 && !(zebras.isEmpty())) {
       l.starving(zebras);
     }
   }
-
   showHungerTimes();
 
+  // Reproduction of zebras.
   ArrayList<Zebra> zebrasToBeAdded = new ArrayList();
   int counterZ = 0;
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
-    if ((danger.isEmpty() && counterZ != 1 && zebras.size() > 1) || z.target(system.foods)) {
+    if (!z.alert(lions) && counterZ != 1 && zebras.size() > 1) { //if (z.alert(lions) && counterZ != 1 && zebras.size() > 1 && z.target(system.foods)) {
       zebrasToBeAdded = z.reproduce(zebrasToBeAdded); 
       counterZ++;
     }
   }
   zebras.addAll(zebrasToBeAdded);
 
+  // Eliminates lions.
   int counterL = 0;
   for (Iterator<Lion> it = lions.iterator(); it.hasNext(); ) {
     Lion l = it.next();
     if (!l.target(zebras) && counterL != 1 && frameCount % l.hungerLevel == 0) {
-      Dead d = new Dead(l.getPos().x, l.getPos().y, l.vel);
+      Dead d = new Dead(l.getPos().x, l.getPos().y);
       dead.add(d);
       it.remove();
       counterL++;
     }
   }
   addItems();
-  
+
+  // Eliminates zebras.
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
     if (z.isDead()) {
-      Dead d = new Dead(z.getPos().x, z.getPos().y, z.vel);
+      Dead d = new Dead(z.getPos().x, z.getPos().y);
       dead.add(d);
       it.remove();
     }
   }
-  
+
+  // Eliminates food.
   for (Iterator<Food> it = system.foods.iterator(); it.hasNext(); ) {
     Food f = it.next();
     if (f.isEmpty()) {
@@ -126,7 +126,7 @@ void draw() {
 }
 
 // Shows the different hunger times of both species.
-void showHungerTimes(){
+void showHungerTimes() {
   if (hungryLion != 0) {
     textSize(20);
     hungryLion--;
@@ -153,42 +153,39 @@ void showHungerTimes(){
 }
 
 // Adds items on the screen depending on the button that is pressed.
-void addItems(){
-  if(mousePressed && notCloseToControls()){    
-    if(currentButton.equals("Lion")){
+void addItems() {
+  if (mousePressed && notCloseToControls()) {    
+    if (currentButton.equals("Lion")) {
       Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.8, 0.1);
       l.debug = showRange;
       lions.add(l);
-    }
-    else if(currentButton.equals("Zebra")){
+    } else if (currentButton.equals("Zebra")) {
       Zebra z = new Zebra(mouseX, mouseY, PVector.random2D(), 0.7, 0.1);
       z.debug = showRange;
       zebras.add(z);
-    }
-    else if(currentButton.equals("Food")){
+    } else if (currentButton.equals("Food")) {
       system.addFood(mouseX, mouseY, "food");
-    }
-    else if(currentButton.equals("Water")){
+    } else if (currentButton.equals("Water")) {
       system.addFood(mouseX, mouseY, "water");
-    }    
+    }
   }
 }
 
 // Methods for showing a "click" effect.
-void mousePressed(){
+void mousePressed() {
   cursor(cursor2);
 }
 
-void mouseReleased(){
+void mouseReleased() {
   cursor(cursor1);
 }
 
 // Verifies that the cursor isn't close to the sliders or buttons.
-boolean notCloseToControls(){
+boolean notCloseToControls() {
   // Not close to the sliders.
-  boolean closeToSliders = (!((100 < mouseX && mouseX < 800) && (0 < mouseY && mouseY < 100)));
+  boolean closeToSliders = (!((50 < mouseX && mouseX < 800) && (0 < mouseY && mouseY < 100)));
   // Not close to the buttons.
-  boolean closeToButtons = (!((width - 500 < mouseX && mouseX < width - 200) && (0 < mouseY && mouseY < 100)));
+  boolean closeToButtons = (!((width - 650 < mouseX && mouseX < width - 250) && (0 < mouseY && mouseY < 100)));
   return  closeToSliders && closeToButtons;
 }
 
@@ -220,27 +217,32 @@ void initControls() {
     .setValue(showRange)
     .setMode(ControlP5.SWITCH)
     .setCaptionLabel("Show ranges");
-    
+
   // Buttons.  
   cp5.addButton("buttonZebra")
-     .setPosition(width - 500, 10)
-     .setImages(loadImage("zebraBtn.png"), loadImage("zebraBtn.png"), loadImage("zebraBtn.png"))
-     .updateSize();
-     
+    .setPosition(width - 600, 10)
+    .setImages(loadImage("zebraBtn.png"), loadImage("zebraBtn.png"), loadImage("zebraBtn.png"))
+    .updateSize();
+
   cp5.addButton("buttonLion")
-     .setPosition(width - 400, 10)
-     .setImages(loadImage("lionBtn.png"), loadImage("lionBtn.png"), loadImage("lionBtn.png"))
-     .updateSize();     
-     
+    .setPosition(width - 500, 10)
+    .setImages(loadImage("lionBtn.png"), loadImage("lionBtn.png"), loadImage("lionBtn.png"))
+    .updateSize();     
+
   cp5.addButton("buttonFood")
-     .setPosition(width - 300, 10)
-     .setImages(loadImage("foodBtn.png"), loadImage("foodBtn.png"), loadImage("foodBtn.png"))
-     .updateSize();
-     
+    .setPosition(width - 400, 10)
+    .setImages(loadImage("foodBtn.png"), loadImage("foodBtn.png"), loadImage("foodBtn.png"))
+    .updateSize();
+
   cp5.addButton("buttonWater")
-     .setPosition(width - 200, 10)
-     .setImages(loadImage("waterBtn.png"), loadImage("waterBtn.png"), loadImage("waterBtn.png"))
-     .updateSize();    
+    .setPosition(width - 300, 10)
+    .setImages(loadImage("waterBtn.png"), loadImage("waterBtn.png"), loadImage("waterBtn.png"))
+    .updateSize();
+    
+  cp5.addButton("buttonClear")
+    .setPosition(width - 200, 10)
+    .setImages(loadImage("clearBtn.png"), loadImage("clearBtn.png"), loadImage("clearBtn.png"))
+    .updateSize();
 }
 
 // Methods for configuring the different sliders.
@@ -266,11 +268,20 @@ void showRanges(boolean val) {
   }
 }
 
+// Clears the screen.
+void resetAll(){
+  zebras = new ArrayList();
+  lions  = new ArrayList();
+  dead   = new ArrayList();
+  system = new FoodSystem();
+}
+
 // Sets as "current button" the button that was pressed.
 public void controlEvent(ControlEvent event) {
   String button = event.getController().getName();
-  if(button.equals("buttonLion"))       currentButton = "Lion";
-  else if(button.equals("buttonZebra")) currentButton = "Zebra";
-  else if(button.equals("buttonFood"))  currentButton = "Food";
-  else if(button.equals("buttonWater")) currentButton = "Water";
+  if (button.equals("buttonLion"))       currentButton = "Lion";
+  else if (button.equals("buttonZebra")) currentButton = "Zebra";
+  else if (button.equals("buttonFood"))  currentButton = "Food";
+  else if (button.equals("buttonWater")) currentButton = "Water";
+  else if (button.equals("buttonClear")) resetAll();
 }

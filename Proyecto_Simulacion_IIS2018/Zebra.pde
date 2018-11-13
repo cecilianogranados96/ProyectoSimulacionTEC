@@ -1,13 +1,11 @@
-class Zebra implements IIndividuo {
+class Zebra {
   PVector pos;
   PVector vel;
   PVector acc;
-  float mass = 1;
   float r = 3;
   float maxSpeed;
   float maxForce;
-  boolean alert, hungry;
-
+  boolean alert;
   float alignmentDistance;
   float alignmentRatio;
 
@@ -23,9 +21,9 @@ class Zebra implements IIndividuo {
   float reproductionRate;
 
   boolean debug;
-  
+
   PImage img;
-  
+
   int quantity;
   boolean dead;
 
@@ -37,34 +35,33 @@ class Zebra implements IIndividuo {
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
 
-    separationDistance = 200;
-    separationRatio = 100;
+    separationDistance = 100;
+    separationRatio = 75;
 
-    alignmentDistance = 70;
-    alignmentRatio = 1;
+    alignmentDistance = 110;
+    alignmentRatio = 0.5;
 
     cohesionDistance = 200;
     cohesionRatio = 0.1;
 
-    arrivalRadius = 100;
+    arrivalRadius = 200;
 
     perceptionRadius = 100;
     reproductionRate = 500;
-    
+
     img = loadImage("zebra.png");
     img.resize(20, 25);
-    
+    alert=false;
     dead = false;
     quantity = 10;
   }
-  
-  void draw(ArrayList<Zebra> zebras){
-    if(!dead){
+
+  void draw(ArrayList<Zebra> zebras) {
+    if (!dead) {
       flock(zebras);
       update();
       borders();
     }
-    
     display();
   }
 
@@ -74,16 +71,19 @@ class Zebra implements IIndividuo {
 
   void update() {
     vel.add(acc);
-    vel.limit(maxSpeed);
+    if (!alert) {
+      vel.limit(maxSpeed);
+    } else {
+      vel.limit(1.1);
+    }
     pos.add(vel);
     acc.mult(0);
   }
 
   void applyForce(PVector force) {
-    PVector f = PVector.div(force, mass);
     acc.add(force);
   }
-  
+
   void starving(ArrayList<Food> foods) {
     float distance;
     for (Food f : foods) {
@@ -103,8 +103,7 @@ class Zebra implements IIndividuo {
     PVector steering = PVector.sub(desired, vel);
     steering.limit(maxForce);
     applyForce(steering);
-    
-    if(int(d) == 0){
+    if (int(d) == 0) {
       eat(food);
     }
   }
@@ -117,31 +116,23 @@ class Zebra implements IIndividuo {
     imageMode(CENTER);
     image(img, 0, 0, img.width, img.height);
     imageMode(CORNER);
-
     if (debug) {
       noFill();
       strokeWeight(1);
       stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
-      
-      /*stroke(#009473, 200);
-      ellipse(0, 0, separationDistance, separationDistance);
-      
-      stroke(#ff66c1, 200);
-      ellipse(0, 0, alignmentDistance, alignmentDistance);
-      
-      stroke(#f2de15, 200);
-      ellipse(0, 0, cohesionDistance, cohesionDistance);*/
     }
 
     popMatrix();
   }
 
   void borders() {
-   if (pos.x > width - 50)  applyForce(new PVector(-1, 0));
-   if (pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
-   if (pos.y > height - 50) applyForce(new PVector(0, -1));
-   if (pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
+    pos.x = (pos.x + width) % width;
+    pos.y = (pos.y + height) % height;
+    /*if (pos.x > width - 50)  applyForce(new PVector(-1, 0));
+     if (pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
+     if (pos.y > height - 50) applyForce(new PVector(0, -1));
+     if (pos.y <= 0 + 50)     applyForce(new PVector(0, 1));*/
   }
 
   void align(ArrayList<Zebra> zebras) {
@@ -149,7 +140,7 @@ class Zebra implements IIndividuo {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < alignmentDistance && !z.isDead()) {
+      if (this != z && d < alignmentDistance) {
         average.add(z.vel);
         count++;
       }
@@ -203,36 +194,36 @@ class Zebra implements IIndividuo {
   }
 
   void flock(ArrayList<Zebra> zebras) {
-    separate(zebras);
-    align(zebras);
-    cohere(zebras);
+    if (!alert) {
+      separate(zebras);
+      align(zebras);
+      cohere(zebras);
+    }
   }
 
-  ArrayList<Lion> alert(ArrayList<Lion> lions) {
+  boolean alert(ArrayList<Lion> lions) {
     float distance;
-    ArrayList<Lion> danger = new ArrayList();
+    int danger=0;
     for (Lion l : lions) {
       distance = PVector.dist(l.pos, pos);
-      if (distance <= perceptionRadius) {
+      if (distance <= perceptionRadius && !l.isDead()) {
+        alert=true;
         scape(l);
-        danger.add(l);
-        maxSpeed = 1.4;
-        l.maxSpeed = 1.5;
-      }
-      else {
-        maxSpeed = 0.7;
-        l.maxSpeed = 0.8;
+        danger++;
       }
     }
-    return danger;
+    if (danger==0) {
+      alert=false;
+    }
+    return alert;
   }
 
   void scape(Lion l) {
-    PVector r = PVector.sub(pos, l.pos);
+    PVector r = PVector.sub(l.pos, pos);
     float d = r.magSq();
     d = constrain(d, 1, 500);
     r.normalize();
-    r.mult(100);//r.mult(G * a1.mass * a2.mass);
+    r.mult(-10);//r.mult(G * a1.mass * a2.mass);
     r.div(d);
     applyForce(r);
   }
@@ -247,21 +238,21 @@ class Zebra implements IIndividuo {
   PVector getPos() {
     return pos;
   }
-  
+
   void eat(Food food) {
     food.eating();
   }
-  
-  void eating(){
+
+  void eating() {
     quantity--;
-    
-    if(quantity == 0){
+
+    if (quantity == 0) {
       dead = true;
       img = loadImage("dead.png");
       img.resize(30, 35);
     }
   }
-  
+
   boolean target(ArrayList<Food> foods) {
     float distance;
     for (Food f : foods) {

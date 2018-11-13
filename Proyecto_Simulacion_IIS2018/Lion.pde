@@ -1,12 +1,11 @@
-class Lion implements IIndividuo {
+class Lion {
   PVector pos;
   PVector vel;
   PVector acc;
-  float mass = 1;
   float r = 3;
   float maxSpeed;
   float maxForce;
-  boolean dead, hungry;
+  boolean dead, hunting;
 
   float alignmentDistance;
   float alignmentRatio;
@@ -33,14 +32,14 @@ class Lion implements IIndividuo {
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
 
-    separationDistance = 200;
-    separationRatio = 100;
+    separationDistance = 20;
+    separationRatio = 10;
 
     alignmentDistance = 70;
     alignmentRatio = 1;
 
     cohesionDistance = 200;
-    cohesionRatio = 0.1;
+    cohesionRatio = 0.01;
 
     arrivalRadius = 100;
     perceptionRadius = 150;
@@ -48,13 +47,17 @@ class Lion implements IIndividuo {
     
     img = loadImage("lion.png");
     img.resize(25, 30);
-    
+    hunting=false;
     dead = false;
   }
 
   void update() {
     vel.add(acc);
-    vel.limit(maxSpeed);
+    if(!hunting){
+      vel.limit(maxSpeed);
+    }else{
+     vel.limit(1.2); 
+    }
     pos.add(vel);
     acc.mult(0);
   }
@@ -64,8 +67,7 @@ class Lion implements IIndividuo {
   }
 
   void applyForce(PVector force) {
-    PVector f = PVector.div(force, mass);
-    acc.add(f);
+    acc.add(force);
   }
 
   void display() {
@@ -82,25 +84,18 @@ class Lion implements IIndividuo {
       strokeWeight(1);  
       stroke(#F51616, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
-      
-      /*stroke(#009473, 200);
-      ellipse(0, 0, separationDistance, separationDistance);
-      
-      stroke(#ff66c1, 200);
-      ellipse(0, 0, alignmentDistance, alignmentDistance);
-      
-      stroke(#f2de15, 200);
-      ellipse(0, 0, cohesionDistance, cohesionDistance);*/
     }
 
     popMatrix();
   }
 
   void borders() {
-    if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
+    pos.x = (pos.x + width) % width;
+    pos.y = (pos.y + height) % height;
+    /*if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
     if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
     if(pos.y > height - 50) applyForce(new PVector(0, -1));
-    if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
+    if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));*/
   }
 
   void align(ArrayList<Lion> lions) {
@@ -182,17 +177,23 @@ class Lion implements IIndividuo {
 
   void flock(ArrayList<Lion> lions) {
     separate(lions);
-    align(lions);
-    cohere(lions);
+    //align(lions);
+    //cohere(lions);
   }
 
   void starving(ArrayList<Zebra> zebras) {
     float distance;
+    int zebrasToEat=0;
     for (Zebra z : zebras) {
       distance = PVector.dist(z.pos, pos);
       if (distance <= perceptionRadius && !z.isDead()) {
+        hunting=true;
         arrive(z.getPos(), z);
+        zebrasToEat++;
       }
+    }
+    if(zebrasToEat==0){
+     hunting=false; 
     }
   }
   
