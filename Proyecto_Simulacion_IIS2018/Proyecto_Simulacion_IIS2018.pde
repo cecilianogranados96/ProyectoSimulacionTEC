@@ -104,8 +104,24 @@ void draw() {
       counterL++;
     }
   }
-  addItems();
 
+  //Add items
+  if (mousePressed && notCloseToControls()) {    
+    if (currentButton.equals("Lion")) {
+      Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.8, 0.1);
+      l.debug = showRange;
+      lions.add(l);
+    } else if (currentButton.equals("Zebra")) {
+      Zebra z = new Zebra(mouseX, mouseY, PVector.random2D(), 0.7, 0.1);
+      z.debug = showRange;
+      zebras.add(z);
+    } else if (currentButton.equals("Food")) {
+      system.addFood(mouseX, mouseY, "food");
+    } else if (currentButton.equals("Water")) {
+      system.addFood(mouseX, mouseY, "water");
+    }
+  }
+  
   // Eliminates zebras.
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
