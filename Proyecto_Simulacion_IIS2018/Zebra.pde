@@ -216,6 +216,12 @@ class Zebra implements IIndividuo {
       if (distance <= perceptionRadius) {
         scape(l);
         danger.add(l);
+        maxSpeed = 1.4;
+        l.maxSpeed = 1.5;
+      }
+      else {
+        maxSpeed = 0.7;
+        l.maxSpeed = 0.8;
       }
     }
     return danger;

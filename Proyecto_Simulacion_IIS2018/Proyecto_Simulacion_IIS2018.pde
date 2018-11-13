@@ -89,7 +89,7 @@ void draw() {
   int counterZ = 0;
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
-    if (danger.isEmpty() && counterZ != 1 && zebras.size() > 1 && z.target(system.foods)) {
+    if ((danger.isEmpty() && counterZ != 1 && zebras.size() > 1) || z.target(system.foods)) {
       zebrasToBeAdded = z.reproduce(zebrasToBeAdded); 
       counterZ++;
     }
