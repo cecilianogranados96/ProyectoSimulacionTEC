@@ -37,16 +37,16 @@ class Zebra implements IIndividuo {
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
 
-    separationDistance = 150;
+    separationDistance = 200;
     separationRatio = 100;
 
-    alignmentDistance = 110;
-    alignmentRatio = 0.5;
+    alignmentDistance = 70;
+    alignmentRatio = 1;
 
-    cohesionDistance = 150;
+    cohesionDistance = 200;
     cohesionRatio = 0.1;
 
-    arrivalRadius = 200;
+    arrivalRadius = 100;
 
     perceptionRadius = 100;
     reproductionRate = 500;
@@ -80,7 +80,7 @@ class Zebra implements IIndividuo {
   }
 
   void applyForce(PVector force) {
-    //PVector f = PVector.div(force, mass); xq mass es 1
+    PVector f = PVector.div(force, mass);
     acc.add(force);
   }
   
@@ -123,6 +123,15 @@ class Zebra implements IIndividuo {
       strokeWeight(1);
       stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
+      
+      /*stroke(#009473, 200);
+      ellipse(0, 0, separationDistance, separationDistance);
+      
+      stroke(#ff66c1, 200);
+      ellipse(0, 0, alignmentDistance, alignmentDistance);
+      
+      stroke(#f2de15, 200);
+      ellipse(0, 0, cohesionDistance, cohesionDistance);*/
     }
 
     popMatrix();
@@ -133,7 +142,7 @@ class Zebra implements IIndividuo {
    if (pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
    if (pos.y > height - 50) applyForce(new PVector(0, -1));
    if (pos.y <= 0 + 50)     applyForce(new PVector(0, 1));
-   }
+  }
 
   void align(ArrayList<Zebra> zebras) {
     PVector average = new PVector(0, 0);
@@ -158,7 +167,7 @@ class Zebra implements IIndividuo {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < separationDistance && !z.isDead()) {
+      if (this != z && d < separationDistance) {
         PVector difference = PVector.sub(pos, z.pos);
         difference.normalize();
         difference.div(d);
@@ -179,7 +188,7 @@ class Zebra implements IIndividuo {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < cohesionDistance && !z.isDead()) {
+      if (this != z && d < cohesionDistance) {
         center.add(z.pos);
         count++;
       }
@@ -204,7 +213,7 @@ class Zebra implements IIndividuo {
     ArrayList<Lion> danger = new ArrayList();
     for (Lion l : lions) {
       distance = PVector.dist(l.pos, pos);
-      if (distance <= perceptionRadius && !l.isDead()) {
+      if (distance <= perceptionRadius) {
         scape(l);
         danger.add(l);
       }

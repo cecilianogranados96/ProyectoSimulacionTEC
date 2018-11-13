@@ -40,7 +40,7 @@ class Lion implements IIndividuo {
     alignmentRatio = 1;
 
     cohesionDistance = 200;
-    cohesionRatio = 0.01;
+    cohesionRatio = 0.1;
 
     arrivalRadius = 100;
     perceptionRadius = 150;
@@ -82,6 +82,15 @@ class Lion implements IIndividuo {
       strokeWeight(1);  
       stroke(#F51616, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
+      
+      /*stroke(#009473, 200);
+      ellipse(0, 0, separationDistance, separationDistance);
+      
+      stroke(#ff66c1, 200);
+      ellipse(0, 0, alignmentDistance, alignmentDistance);
+      
+      stroke(#f2de15, 200);
+      ellipse(0, 0, cohesionDistance, cohesionDistance);*/
     }
 
     popMatrix();

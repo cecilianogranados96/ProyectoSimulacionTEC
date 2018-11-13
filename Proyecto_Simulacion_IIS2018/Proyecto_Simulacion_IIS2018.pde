@@ -100,7 +100,7 @@ void draw() {
   for (Iterator<Lion> it = lions.iterator(); it.hasNext(); ) {
     Lion l = it.next();
     if (!l.target(zebras) && counterL != 1 && frameCount % l.hungerLevel == 0) {
-      Dead d = new Dead(l.getPos().x, l.getPos().y);
+      Dead d = new Dead(l.getPos().x, l.getPos().y, l.vel);
       dead.add(d);
       it.remove();
       counterL++;
@@ -111,7 +111,7 @@ void draw() {
   for (Iterator<Zebra> it = zebras.iterator(); it.hasNext(); ) {
     Zebra z = it.next();
     if (z.isDead()) {
-      Dead d = new Dead(z.getPos().x, z.getPos().y);
+      Dead d = new Dead(z.getPos().x, z.getPos().y, z.vel);
       dead.add(d);
       it.remove();
     }
