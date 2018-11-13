@@ -6,6 +6,7 @@ class Zebra {
   float maxSpeed;
   float maxForce;
   boolean alert;
+  boolean eat;
   float alignmentDistance;
   float alignmentRatio;
 
@@ -36,13 +37,13 @@ class Zebra {
     this.maxForce = maxForce;
 
     separationDistance = 100;
-    separationRatio = 75;
+    separationRatio = 100;
 
     alignmentDistance = 110;
     alignmentRatio = 0.5;
 
-    cohesionDistance = 200;
-    cohesionRatio = 0.1;
+    cohesionDistance = 100;
+    cohesionRatio = 0.05;
 
     arrivalRadius = 200;
 
@@ -53,6 +54,7 @@ class Zebra {
     img.resize(20, 25);
     alert=false;
     dead = false;
+    eat = false;
     quantity = 10;
   }
 
@@ -84,14 +86,24 @@ class Zebra {
     acc.add(force);
   }
 
-  void starving(ArrayList<Food> foods) {
+  void starving(ArrayList<Food> foods, ArrayList zebras) {
     float distance;
     for (Food f : foods) {
       distance = PVector.dist(f.getPos(), pos);
       if (distance <= perceptionRadius && !f.isEmpty()) {
+         separationRatio = 50;
         arrive(f.getPos(), f);
+        maxSpeed = 0;
       }
+      else{
+        maxSpeed = 0.7;
+        separationRatio =100;
+      }
+      
     }
+    maxSpeed = 0.7;
+    separationRatio =100;
+    flock(zebras);
   }
 
   void arrive(PVector target, Food food) {
@@ -208,7 +220,7 @@ class Zebra {
       distance = PVector.dist(l.pos, pos);
       if (distance <= perceptionRadius && !l.isDead()) {
         alert=true;
-        scape(l);
+        escape(l);
         danger++;
       }
     }
@@ -218,7 +230,7 @@ class Zebra {
     return alert;
   }
 
-  void scape(Lion l) {
+  void escape(Lion l) {
     PVector r = PVector.sub(l.pos, pos);
     float d = r.magSq();
     d = constrain(d, 1, 500);

@@ -10,7 +10,7 @@ class Food{
     mass = 2;    
     empty = false;
     setImage(type);
-    quantity = int(random(0, 50));
+    quantity = int(random(0, 20));
   }
 
   // Displays the food on the screen.
@@ -22,7 +22,7 @@ class Food{
     imageMode(CORNER);
     popMatrix();
     textSize(35);
-    text(quantity, pos.x, pos.y);
+    //text(quantity, pos.x, pos.y);
   }
   
   // Gets the position of the food.

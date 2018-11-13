@@ -39,7 +39,7 @@ void setup() {
 
   wait = 1000;
 
-  terrain = loadImage("terrain.png");
+  terrain = loadImage("terrain.jpg");
   cursor1 = loadImage("hand.png");
   cursor2 = loadImage("hand2.png");
 
@@ -65,7 +65,7 @@ void draw() {
     z.draw(zebras);
     boolean isAlert=z.alert(lions);
     if (hungryZebra == 0 && !(system.foods.isEmpty()) && !isAlert) {
-      z.starving(system.foods);
+      z.starving(system.foods, zebras);
     }
   }
   
@@ -161,7 +161,7 @@ void showHungerTimes() {
     text("General hunger time: " + int(wait/10), 10, 30);
 
     if (wait == 0) {
-      hungryZebra = int(random(0, 50))*100;
+      hungryZebra = int(random(0, 20))*100;
       hungryLion = int(random(0, 50))*100;
       wait = 1000;
     }

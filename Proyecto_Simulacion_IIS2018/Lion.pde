@@ -32,8 +32,8 @@ class Lion {
     this.maxSpeed = maxSpeed;
     this.maxForce = maxForce;
 
-    separationDistance = 20;
-    separationRatio = 10;
+    separationDistance = 60;
+    separationRatio = 20;
 
     alignmentDistance = 70;
     alignmentRatio = 1;
