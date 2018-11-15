@@ -47,11 +47,12 @@ class Food{
     }
   }
   
-  void eating(){
+  void eating(Zebra z){
     quantity--;
     
     if(quantity <= 0){
       empty = true;
+      z.hungryCounter=int(random(5, 20))*100;
     }
   }
 }

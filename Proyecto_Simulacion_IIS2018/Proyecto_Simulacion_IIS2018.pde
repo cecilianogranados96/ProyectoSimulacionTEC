@@ -27,7 +27,7 @@ boolean start = false;
 
 void setup() {
   fullScreen(P2D);
-      
+  //size(800,500);
   terrain = loadImage("start_window.png");
   startWindow();
 
@@ -41,12 +41,11 @@ void draw() {
     imageMode(CORNER);
     image(terrain, 0, 0, width, height);  
     terrain.resize(width, height);
-  }
-
-  else{
+  } else{
     imageMode(CORNER);
     image(terrain, 0, 0, width, height);  
     terrain.resize(width, height);
+    showInformation();
     
     for (Dead d : dead) {
       d.draw();
@@ -60,8 +59,7 @@ void draw() {
   
     for (Zebra z : zebras) {
       z.draw(zebras);
-      boolean isAlert=z.alert(lions);
-      if (hungryZebra == 0 && !(system.foods.isEmpty()) && !isAlert) {
+      if (z.isHungry() && !(system.foods.isEmpty()) && !z.alert) {//(z.isHungry() && !(system.foods.isEmpty()) && !z.alert)
         z.starving(system.foods, zebras);
       }
     }
@@ -71,12 +69,11 @@ void draw() {
       l.update();
       l.borders();
       l.display();
-  
-      if (hungryLion == 0 && !(zebras.isEmpty())) {
+      if (l.isHungry() && !(zebras.isEmpty())) {
         l.starving(zebras);
       }
     }
-    showHungerTimes();
+    //showHungerTimes();
   
     // Reproduction of zebras.
     ArrayList<Zebra> zebrasToBeAdded = new ArrayList();
@@ -89,23 +86,23 @@ void draw() {
       }
     }
     zebras.addAll(zebrasToBeAdded);
-  
+    
     // Eliminates lions.
     int counterL = 0;
     for (Iterator<Lion> it = lions.iterator(); it.hasNext(); ) {
       Lion l = it.next();
-      if (!l.target(zebras) && counterL != 1 && frameCount % l.hungerLevel == 0) {
+      if (!l.hunting && counterL != 1 && frameCount % l.hungerLevel == 0 && l.hungryCounter==0) {
         Dead d = new Dead(l.getPos().x, l.getPos().y);
         dead.add(d);
         it.remove();
         counterL++;
       }
     }
-  
+
     //Add items
     if (mousePressed && notCloseToControls()) {    
       if (currentButton.equals("Lion")) {
-        Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.8, 0.1);
+        Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.9, 0.9);
         l.debug = showRange;
         lions.add(l);
       } else if (currentButton.equals("Zebra")) {
@@ -140,7 +137,7 @@ void draw() {
 }
 
 // Shows the different hunger times of both species.
-void showHungerTimes() {
+/*void showHungerTimes() {
   if (hungryLion != 0) {
     textSize(20);
     hungryLion--;
@@ -164,13 +161,13 @@ void showHungerTimes() {
       wait = 1000;
     }
   }
-}
+}*/
 
 // Adds items on the screen depending on the button that is pressed.
 void addItems() {
   if (mousePressed && notCloseToControls()) {    
     if (currentButton.equals("Lion")) {
-      Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.8, 0.1);
+      Lion l = new Lion(mouseX, mouseY, PVector.random2D(), 0.9, 0.9);
       l.debug = showRange;
       lions.add(l);
     } else if (currentButton.equals("Zebra")) {
@@ -259,12 +256,25 @@ void initControls() {
     .updateSize();
 }
 
+// Shows the number of lions, zebras and resources.
+void showInformation(){
+  noStroke();
+  fill(#343434, 128);  
+  rect(100, height - 200, 200, 150);    
+  fill(255);
+  textSize(20);
+  text("Environment", 150, height - 180);
+  text("Zebras: " + zebras.size(), 120, height - 130);
+  text("Lions: "  + lions.size(), 120, height - 100);
+  text("Resources: "  + system.foods.size(), 120, height - 70);  
+}
+
 void startWindow(){
   cp5 = new ControlP5(this);
   
   // Buttons.  
   cp5.addButton("buttonStart")
-    .setPosition(width - 850, 450)
+    .setPosition(width / 2 - 170, height / 2 + 80)
     .setImages(loadImage("startBtn.png"), loadImage("startBtn.png"), loadImage("startBtn.png"))
     .updateSize();       
 }
@@ -284,12 +294,12 @@ void setLionsMortalityRate(float val) {
 
 void showRanges(boolean val) {
   showRange = val;
-  for (Zebra z : zebras) {   
-    z.debug = val;
-  }
-  for (Lion l : lions) {
-    l.debug = val;
-  }
+  //for (Zebra z : zebras) {   
+  //  z.debug = val;
+  //}
+  //for (Lion l : lions) {
+  //  l.debug = val;
+  //}
 }
 
 // Clears the screen.

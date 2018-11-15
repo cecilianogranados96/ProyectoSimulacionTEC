@@ -26,6 +26,8 @@ class Zebra {
   PImage img;
 
   int quantity;
+  int hungryCounter;
+  int wait=1000;
   boolean dead;
 
   Zebra(float x, float y, PVector vel, float maxSpeed, float maxForce) {
@@ -37,25 +39,45 @@ class Zebra {
     this.maxForce = maxForce;
 
     separationDistance = 100;
-    separationRatio = 100;
+    separationRatio = 20;
 
     alignmentDistance = 110;
-    alignmentRatio = 0.5;
+    alignmentRatio = 0.25;
 
-    cohesionDistance = 100;
-    cohesionRatio = 0.05;
+    cohesionDistance = 200;
+    cohesionRatio = 0.01;
 
     arrivalRadius = 200;
 
     perceptionRadius = 100;
     reproductionRate = 500;
+    hungryCounter=int(random(5, 20))*100;
 
     img = loadImage("zebra.png");
     img.resize(20, 25);
     alert=false;
     dead = false;
     eat = false;
-    quantity = 10;
+    quantity = 1;
+  }
+
+  void starving(ArrayList<Food> foods, ArrayList zebras) {
+    float distance;
+    for (Food f : foods) {
+      distance = PVector.dist(pos, f.getPos());
+      if (distance <= perceptionRadius && !f.isEmpty()) {
+        //separationRatio = 50;
+        arrive(f.getPos(), f);
+        //maxSpeed = 0;
+        break;
+      } else {
+        //maxSpeed = 0.7;
+        //separationRatio =100;
+      }
+    }
+    /*maxSpeed = 0.7;
+     separationRatio =100;
+     flock(zebras);*/
   }
 
   void draw(ArrayList<Zebra> zebras) {
@@ -76,34 +98,15 @@ class Zebra {
     if (!alert) {
       vel.limit(maxSpeed);
     } else {
-      vel.limit(1.1);
+      vel.limit(1);
     }
     pos.add(vel);
     acc.mult(0);
+    debug = showRange; // showRange is a global variable located in main.
   }
 
   void applyForce(PVector force) {
     acc.add(force);
-  }
-
-  void starving(ArrayList<Food> foods, ArrayList zebras) {
-    float distance;
-    for (Food f : foods) {
-      distance = PVector.dist(f.getPos(), pos);
-      if (distance <= perceptionRadius && !f.isEmpty()) {
-         separationRatio = 50;
-        arrive(f.getPos(), f);
-        maxSpeed = 0;
-      }
-      else{
-        maxSpeed = 0.7;
-        separationRatio =100;
-      }
-      
-    }
-    maxSpeed = 0.7;
-    separationRatio =100;
-    flock(zebras);
   }
 
   void arrive(PVector target, Food food) {
@@ -124,17 +127,20 @@ class Zebra {
     float ang = vel.heading();
     pushMatrix();
     translate(pos.x, pos.y);
-    rotate(ang);
-    imageMode(CENTER);
-    image(img, 0, 0, img.width, img.height);
-    imageMode(CORNER);
     if (debug) {
       noFill();
       strokeWeight(1);
       stroke(#077EF2, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
+      // Shows hunger level.
+      fill(255);
+      textSize(20);
+      text(hungryCounter, 10, 10);
     }
-
+    rotate(ang);
+    imageMode(CENTER);
+    image(img, 0, 0, img.width, img.height);
+    imageMode(CORNER);    
     popMatrix();
   }
 
@@ -152,7 +158,7 @@ class Zebra {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < alignmentDistance) {
+      if (this != z && d < alignmentDistance && (z.hungryCounter!=0) && !(z.alert)) {
         average.add(z.vel);
         count++;
       }
@@ -170,7 +176,7 @@ class Zebra {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < separationDistance) {
+      if (this != z && d < separationDistance && (z.hungryCounter!=0) && !(z.alert)) {
         PVector difference = PVector.sub(pos, z.pos);
         difference.normalize();
         difference.div(d);
@@ -191,7 +197,7 @@ class Zebra {
     int count = 0;
     for (Zebra z : zebras) {
       float d = PVector.dist(pos, z.pos);
-      if (this != z && d < cohesionDistance) {
+      if (this != z && d < cohesionDistance && (z.hungryCounter!=0) && !(z.alert)) {
         center.add(z.pos);
         count++;
       }
@@ -206,7 +212,7 @@ class Zebra {
   }
 
   void flock(ArrayList<Zebra> zebras) {
-    if (!alert) {
+    if (!alert && hungryCounter!=0) {
       separate(zebras);
       align(zebras);
       cohere(zebras);
@@ -217,7 +223,7 @@ class Zebra {
     float distance;
     int danger=0;
     for (Lion l : lions) {
-      distance = PVector.dist(l.pos, pos);
+      distance = PVector.dist(pos, l.pos);
       if (distance <= perceptionRadius && !l.isDead()) {
         alert=true;
         escape(l);
@@ -252,27 +258,44 @@ class Zebra {
   }
 
   void eat(Food food) {
-    food.eating();
+    food.eating(this);
   }
 
-  void eating() {
+  void eating(Lion l) {
     quantity--;
-
     if (quantity == 0) {
       dead = true;
+      l.hungryCounter=int(random(5, 20))*100;
+      l.wait=1000;
       img = loadImage("dead.png");
       img.resize(30, 35);
     }
   }
 
-  boolean target(ArrayList<Food> foods) {
-    float distance;
-    for (Food f : foods) {
-      distance = PVector.dist(f.pos, pos);
-      if (distance <= perceptionRadius && !f.isEmpty()) {
+  boolean isHungry() {
+    if (!system.foods.isEmpty()) {
+      if (hungryCounter==0 && wait==0) {
+        hungryCounter=int(random(5, 20))*100;
+        wait=1000;
+        return false;
+      } else if (hungryCounter==0) {
+        wait--;
         return true;
       }
+      hungryCounter--;
+      return false;
     }
     return false;
   }
+
+  /*boolean target(ArrayList<Food> foods) {
+   float distance;
+   for (Food f : foods) {
+   distance = PVector.dist(f.pos, pos);
+   if (distance <= perceptionRadius && !f.isEmpty()) {
+   return true;
+   }
+   }
+   return false;
+   }*/
 }

@@ -19,9 +19,11 @@ class Lion {
   float arrivalRadius;
   float perceptionRadius;
   float hungerLevel;
-  
+
   boolean debug;
-  
+  int hungryCounter;
+  int wait=1000;
+
   PImage img;
 
   Lion(float x, float y, PVector vel, float maxSpeed, float maxForce) {
@@ -43,8 +45,9 @@ class Lion {
 
     arrivalRadius = 100;
     perceptionRadius = 150;
-    hungerLevel = 300;    
-    
+    hungerLevel = 300;
+    hungryCounter=int(random(5, 20))*100;
+
     img = loadImage("lion.png");
     img.resize(25, 30);
     hunting=false;
@@ -53,13 +56,14 @@ class Lion {
 
   void update() {
     vel.add(acc);
-    if(!hunting){
+    if (!hunting) {
       vel.limit(maxSpeed);
-    }else{
-     vel.limit(1.2); 
+    } else {
+      vel.limit(1.4);
     }
     pos.add(vel);
     acc.mult(0);
+    debug = showRange; // showRange is a global variable located in main.
   }
 
   boolean isDead() {
@@ -74,18 +78,20 @@ class Lion {
     float ang = vel.heading();    
     pushMatrix();
     translate(pos.x, pos.y);
-    rotate(ang);
-    imageMode(CENTER);
-    image(img, 0, 0, img.width, img.height);
-    imageMode(CORNER);
-
     if (debug) {
       noFill();
       strokeWeight(1);  
       stroke(#F51616, 200);
       ellipse(0, 0, perceptionRadius, perceptionRadius);
+      // Shows hunger level.
+      fill(255);
+      textSize(20);
+      text(hungryCounter, 10, 10);
     }
-
+    rotate(ang);
+    imageMode(CENTER);
+    image(img, 0, 0, img.width, img.height);
+    imageMode(CORNER);
     popMatrix();
   }
 
@@ -93,9 +99,9 @@ class Lion {
     pos.x = (pos.x + width) % width;
     pos.y = (pos.y + height) % height;
     /*if(pos.x > width - 50)  applyForce(new PVector(-1, 0));
-    if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
-    if(pos.y > height - 50) applyForce(new PVector(0, -1));
-    if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));*/
+     if(pos.x <= 0 + 50)     applyForce(new PVector(1, 0));
+     if(pos.y > height - 50) applyForce(new PVector(0, -1));
+     if(pos.y <= 0 + 50)     applyForce(new PVector(0, 1));*/
   }
 
   void align(ArrayList<Lion> lions) {
@@ -121,7 +127,7 @@ class Lion {
     int count = 0;
     for (Lion l : lions) {
       float d = PVector.dist(pos, l.pos);
-      if (this != l && d < separationDistance) {
+      if (this != l && d < separationDistance && !(l.hunting)) {
         PVector difference = PVector.sub(pos, l.pos);
         difference.normalize();
         difference.div(d);
@@ -160,56 +166,70 @@ class Lion {
     PVector desired = PVector.sub(target, pos);
     float d = PVector.dist(pos, target);
     d = constrain(d, 0, arrivalRadius);
-    float speed = map(d, 0, arrivalRadius, 0, maxSpeed);
+    float speed = map(d, 0, arrivalRadius, 0, 1.3);
     vel.setMag(speed);
     PVector steering = PVector.sub(desired, vel);
     steering.limit(maxForce);
     applyForce(steering);
-    
-    if(abs(int(d)) == 10){
+    if (abs(int(d)) == 10) {
       eat(zebra);
     }
   }
-  
+
   void eat(Zebra zebra) {
-    zebra.eating();
+    zebra.eating(this);
   }
 
   void flock(ArrayList<Lion> lions) {
-    separate(lions);
-    //align(lions);
-    //cohere(lions);
+    if (!hunting) {
+      separate(lions);
+      //align(lions);
+      //cohere(lions);
+    }
   }
 
   void starving(ArrayList<Zebra> zebras) {
     float distance;
     int zebrasToEat=0;
     for (Zebra z : zebras) {
-      distance = PVector.dist(z.pos, pos);
+      distance = PVector.dist(pos, z.pos);
       if (distance <= perceptionRadius && !z.isDead()) {
         hunting=true;
         arrive(z.getPos(), z);
         zebrasToEat++;
+        break;
       }
     }
-    if(zebrasToEat==0){
-     hunting=false; 
+    if (zebrasToEat==0) {
+      hunting=false;
     }
   }
-  
-  boolean target(ArrayList<Zebra> zebras) {
-    float distance;
-    
-    for (Zebra z : zebras) {
-      distance = PVector.dist(z.pos, pos);
-      if (distance <= perceptionRadius && !z.isDead()) {
-        return true;
-      }
+
+  boolean isHungry() {
+    if (hungryCounter==0 && wait==0) {
+      //hungryCounter=int(random(5, 20))*100;
+      //wait=1000;
+      return false;
+    } else if (hungryCounter==0) {
+      wait--;
+      return true;
     }
+    hungryCounter--;
     return false;
   }
-  
-  PVector getPos(){
+
+  /*boolean target(ArrayList<Zebra> zebras) {
+   float distance;
+   for (Zebra z : zebras) {
+   distance = PVector.dist(z.pos, pos);
+   if (distance <= perceptionRadius && !z.isDead()) {
+   return true;
+   }
+   }
+   return false;
+   }*/
+
+  PVector getPos() {
     return pos;
   }
 
